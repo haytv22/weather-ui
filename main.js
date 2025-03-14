@@ -21,7 +21,7 @@ async function getAddNameTeamp() {
     }
 
     const value = await Response.json();
-    // console.log(value);
+    console.log(value);
     // láy value từ API
     const nameCity = value.name;
     const tempValue = Math.round(value.main.temp);
@@ -29,8 +29,8 @@ async function getAddNameTeamp() {
     const descriptionValue = value.weather[0].description;
     const weather = value.weather[0].main;
     const backgroundValue = getBackground(weather);
-    const getIcon = value.weather[0].icon;
-    const iconValue = `https://openweathermap.org/img/wn/${getIcon}@4x.png`
+    const iconAIP = value.weather[0].icon;
+    const iconValue = getIcon(iconAIP)
     
 
     const location = document.querySelector(".left-location p");
@@ -62,6 +62,34 @@ async function getAddNameTeamp() {
           return "acssec/nang.jpg";
       }
     }
+    function getIcon(icon) {
+        switch (icon) {
+            // trời tối
+            case "01n":
+                return `<i class="fa-solid fa-moon"></i>`
+            case "02n" || "03n":
+                return `<i class="fa-solid fa-cloud-moon"></i>`
+            case "09n" || "10n":
+                return `<i class="fa-solid fa-cloud-moon-rain"></i>`
+            // trời sáng
+            case "01d":
+                return `<i class="fa-solid fa-sun"></i>`
+            case "02d" || "03d":
+                return `<i class="fa-solid fa-cloud-sun"></i>`
+            case "04d "||"04n":
+                return `<i class="fa-solid fa-cloud"></i>`
+            case "09d":
+                return `<i class="fa-solid fa-cloud-sun-rain"></i>`
+            case "10d"||"10n":
+                return `<i class="fa-solid fa-cloud-showers-heavy"></i>`
+            case "11d"||"11n":
+                return `<i class="fa-solid fa-tornado"></i>`
+            case "13d"||"13n":
+                return `<i class="fa-solid fa-snowflake"></i>`
+            default:
+                return `<i class="fa-solid fa-cloud"></i>`
+        }
+    }
 
 
     // gán giá trị vào DOM
@@ -70,7 +98,7 @@ async function getAddNameTeamp() {
     description.innerHTML = descriptionValue;
     feelsLike.innerHTML = feelsLikeValue + "&deg;";
     background.style.backgroundImage = `url(${backgroundValue})`;
-    icon.style.backgroundImage = `url(${iconValue})`
+    icon.innerHTML = iconValue
   } catch (error) {
     window.alert(error);
   }
