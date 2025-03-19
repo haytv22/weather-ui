@@ -105,10 +105,10 @@ async function fetchWeatherData() {
   } catch (error) {
     window.alert(error);
   }
+  set5Day(cityName);
 }
-set5Day();
 
-function set5Day() {
+function set5Day(value) {
   // Tạo đối tượng Date cho ngày hôm nay
   let today = new Date();
 
@@ -123,18 +123,85 @@ function set5Day() {
     "Thứ 7",
   ];
 
-  // Lặp qua 5 ngày tiếp theo
-  for (let i = 1; i <= 5; i++) {
-    // Tạo một đối tượng Date mới cho ngày tiếp theo
-    let nextDate = new Date(today);
-    nextDate.setDate(today.getDate() + i);
+  const apiKey = "5b6bbe5f514928962b3726c6b6955d9d"; 
+  const city = value;
+  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`;
 
-    // Lấy thứ của ngày tiếp theo
-    let dayOfWeek = daysOfWeek[nextDate.getDay()];
-    const getDay = document.querySelector(
-      `.day-container .container-item:nth-child(${i}) .container-item-day`
-    );
-    console.log(getDay);
-    getDay.innerHTML = dayOfWeek;
-  }
+  fetch(url)
+    .then((response) => {
+      if (!response.ok) throw new Error("Lỗi API");
+      return response.json();
+    })
+    .then((data) => {
+      const forecastList = data.list;
+      const dailyData = {};
+
+      // Nhóm dữ liệu theo ngày
+      forecastList.forEach((item) => {
+        const date = new Date(item.dt * 1000);
+        const dayKey = date.toLocaleDateString("vi-VN", {
+          weekday: "long",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+
+        if (!dailyData[dayKey]) {
+          dailyData[dayKey] = [];
+        }
+        dailyData[dayKey].push(item.main.temp);
+      });
+
+      // Tính min/max cho từng ngày
+      const dailyMinMax = {};
+      for (const day in dailyData) {
+        const temps = dailyData[day];
+        dailyMinMax[day] = {
+          min: Math.min(...temps).toFixed(0),
+          max: Math.max(...temps).toFixed(0),
+        };
+      }
+      
+
+      // Lặp qua 5 ngày tiếp theo
+      for (let i = 1; i <= 5; i++) {
+        // Tạo một đối tượng Date mới cho ngày tiếp theo
+        let nextDate = new Date(today);
+        nextDate.setDate(today.getDate() + i);
+      
+        // Lấy thứ của ngày tiếp theo
+        let dayOfWeek = daysOfWeek[nextDate.getDay()];
+        const getDay = document.querySelector(
+          `.day-container .container-item:nth-child(${i})`
+        );
+      
+        if (getDay) {
+          const getDateOfWeeK = getDay.querySelector(".container-item-day");
+          const gettempday = getDay.querySelector(".container-item-temp p");
+      
+          // Gán thứ vào DOM
+          getDateOfWeeK.innerHTML = dayOfWeek;
+      
+          // Lấy giá trị max và min từ dailyMinMax
+          const dayKey = nextDate.toLocaleDateString("vi-VN", {
+            weekday: "long",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+      
+          if (dailyMinMax[dayKey]) {
+            const { max, min } = dailyMinMax[dayKey];
+            gettempday.innerHTML = `${min}&deg; / ${max}&deg;`; // Gán giá trị max/min vào DOM
+          } else {
+            gettempday.innerHTML = "N/A"; // Nếu không có dữ liệu, hiển thị N/A
+          }
+          const tempMain = document.querySelector(".min-max");
+          tempMain.innerHTML = `${dailyMinMax[dayKey].min}&deg; / ${dailyMinMax[dayKey].max}&deg;`;
+        } else {
+          console.error(`Không tìm thấy phần tử cho ngày thứ ${i}`);
+        }
+      }
+    })
+    .catch((error) => console.error("Lỗi:", error));
 }
